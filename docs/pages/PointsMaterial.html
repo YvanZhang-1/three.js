@@ -105,13 +105,15 @@ color is modulated by the diffuse <code>color</code>.</p>
 					<div class="description">
 						<p>Defines the size of the points in pixels.</p>
 <p>Might be capped if the value exceeds hardware dependent parameters like <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/getParamete" target="_blank" rel="noopener">gl.ALIASED_POINT_SIZE_RANGE</a>.</p>
-						<p>Default is <code>1</code>.</p>
+<p>这里的size语义要根据 sizeAttenuation 值改变，当sizeAttenuation=true时，点大小随相机深度衰减，size表示世界单位，即越远看起来越小。sizeAttenuation=false时，size表示像素大小，永远固定</p>						
+<p>Default is <code>1</code>.</p>
 					</div>
 				</div>
 				<div class="member">
 					<h3 class="name" id="sizeAttenuation" translate="no">.<a href="#sizeAttenuation">sizeAttenuation</a><span class="type-signature"> : boolean</span> </h3>
 					<div class="description">
 						<p>Specifies whether size of individual points is attenuated by the camera depth (perspective camera only).</p>
+						<p>指定单个点的大小是否随摄像机深度而衰减（仅适用于透视摄像机）。</p>
 						<p>Default is <code>true</code>.</p>
 					</div>
 				</div>
