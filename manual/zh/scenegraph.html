@@ -74,7 +74,7 @@ objects.push(sunMesh);
 <p>为了便于观察，我们要把摄像头放在原点的正上方向下看。最简单的方法是使用 <code class="notranslate" translate="no">lookAt</code> 函数。 <code class="notranslate" translate="no">lookAt</code> 函数让摄像机从它的位置“看向”我们传递 <code class="notranslate" translate="no">lookAt</code> 的位置。在这样做之前，我们需要告诉摄像机的顶部朝向哪个方向，或者说哪个方向是摄像机的 "上"。对于大多数情况来说，正 Y 是向上的就足够了，但是由于我们是直视下方，我们需要告诉摄像机正 Z 是向上的。</p>
 <pre class="prettyprint showlinemods notranslate lang-js" translate="no">const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.set(0, 50, 0);
-camera.up.set(0, 0, 1);
+camera.up.set(0, 0, 1); // 这里必须设置，让摄像机知道头朝哪，否则图像可能会偏转，下方lookAt也不能计算相机的四元数（旋转矩阵） 
 camera.lookAt(0, 0, 0);
 </pre>
 <p>在渲染循环中，根据之前的例子进行了调整，我们用这段代码旋转 <code class="notranslate" translate="no">objects</code> 数组中的所有对象。</p>

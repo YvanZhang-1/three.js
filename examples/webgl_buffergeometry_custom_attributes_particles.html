@@ -69,7 +69,7 @@
 
 			let particleSystem, uniforms, geometry;
 
-			const particles = 100000;
+			const particles = 10000;
 
 			init();
 
@@ -95,7 +95,7 @@
 					blending: THREE.AdditiveBlending,
 					depthTest: false,
 					transparent: true,
-					vertexColors: true
+					vertexColors: true,
 
 				} );
 
@@ -115,7 +115,8 @@
 					positions.push( ( Math.random() * 2 - 1 ) * radius );
 					positions.push( ( Math.random() * 2 - 1 ) * radius );
 					positions.push( ( Math.random() * 2 - 1 ) * radius );
-
+					
+					// 第一个参数，色相变化会造成颜色会平滑的分布为红橙黄绿蓝靛紫，每一个点的颜色都不一样，后续循环渲染中只变化大小就能实现闪烁的效果	
 					color.setHSL( i / particles, 1.0, 0.5 );
 
 					colors.push( color.r, color.g, color.b );

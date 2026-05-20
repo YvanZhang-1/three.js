@@ -17,19 +17,29 @@
 
 		<script type="x-shader/x-vertex" id="vertexshader">
 
+			// 幅度
 			uniform float amplitude;
+			// 位移
+			in float displacement;
 
-			attribute float displacement;
-
-			varying vec3 vNormal;
-			varying vec2 vUv;
+			out vec3 vNormal;
+			// 纹理坐标
+			out vec2 vUv;
 
 			void main() {
-
+				
+				// 法线
 				vNormal = normal;
+				
+				// 纹理坐标根据振幅发生偏移
+				// 贴图会在模型表面随着时间（由 amplitude 控制）产生缩放和滑动的效果
 				vUv = ( 0.5 + amplitude ) * uv + vec2( amplitude );
-
+ 				
+				// 顶点沿着法线方向,受振幅和位移影响 伸缩
+				// 在 GLSL 中，两个 vec3 相乘执行的是 逐分量乘法 
+				// normal (法线) 是 (nx, ny, nz) , vec3(displacement) 是 (d, d, d) 相乘得到结果是向量(nx*d, ny*d, nz*d)
 				vec3 newPosition = position + amplitude * normal * vec3( displacement );
+
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
 
 			}
@@ -38,8 +48,8 @@
 
 		<script type="x-shader/x-fragment" id="fragmentshader">
 
-			varying vec3 vNormal;
-			varying vec2 vUv;
+			in vec3 vNormal;
+			in vec2 vUv;
 
 			uniform vec3 color;
 			uniform sampler2D colorTexture;
@@ -48,10 +58,14 @@
 
 				vec3 light = vec3( 0.5, 0.2, 1.0 );
 				light = normalize( light );
-
+				
+				// 半兰伯特光照
+				// 计算法线与灯光方向的点积。* 0.5 + 0.5 的技巧是为了让物体的背光面不至于全黑，看起来更有质感，更柔和
 				float dProd = dot( vNormal, light ) * 0.5 + 0.5;
 
 				vec4 tcolor = texture2D( colorTexture, vUv );
+
+				// 使用标准的加权算法将其转成了黑白灰度图
 				vec4 gray = vec4( vec3( tcolor.r * 0.3 + tcolor.g * 0.59 + tcolor.b * 0.11 ), 1.0 );
 
 				gl_FragColor = gray * vec4( vec3( dProd ) * vec3( color ), 1.0 );

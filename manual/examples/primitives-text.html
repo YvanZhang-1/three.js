@@ -50,6 +50,11 @@ function main() {
 	scene.background = new THREE.Color( 0xAAAAAA );
 
 	{
+		const axesHelper = new THREE.AxesHelper( 5 );
+ 		scene.add( axesHelper );
+	}
+
+	{
 
 		const color = 0xFFFFFF;
 		const intensity = 3;
@@ -76,6 +81,9 @@ function main() {
 
 		obj.position.x = x * spread;
 		obj.position.y = y * spread;
+
+		const axesHelper = new THREE.AxesHelper( 5 );
+ 		obj.add( axesHelper );
 
 		scene.add( obj );
 		objects.push( obj );
@@ -124,7 +132,7 @@ function main() {
 			const geometry = new TextGeometry( 'three.js', {
 				font: font,
 				size: 3.0,
-				depth: .2,
+				depth: .5,
 				curveSegments: 12,
 				bevelEnabled: true,
 				bevelThickness: 0.15,
@@ -135,12 +143,21 @@ function main() {
 			addSolidGeometry( - .5, 0, geometry );
 
 			const mesh = new THREE.Mesh( geometry, createMaterial() );
+
+			// const box = new THREE.BoxHelper( mesh, 0xff0000 );
+			
+			// 初始化时，mesh的中心点几何的左下角，左下角位于 0,0,0 ,假设该集合高4 宽10，厚度暂时不考虑，此时右下角 为 (10,0,0)
+			// 计算最小包围盒
 			geometry.computeBoundingBox();
+			// 获取包围盒的中心点并将mesh的中心点移动到包围盒的中心点，假设中心点(5,2,0)
+			// 这时mesh就挪走了几何的左下角挪到了这个中心点(5,2,0)上  相当于整体向上向右平移了，右下角就位于 (15,2,0)
+			// multiplyScalar(-1) 各分量乘-1 ，mesh.position就得到(-5,-2,0) 此时几何中心就在(0,2,0)上，右下角就位于 (5,2,0)上了
 			geometry.boundingBox.getCenter( mesh.position ).multiplyScalar( - 1 );
 
 			const parent = new THREE.Object3D();
 			parent.add( mesh );
-
+	
+			// parent.add( box );
 			addObject( .5, 0, parent );
 
 		}
@@ -181,7 +198,7 @@ function main() {
 
 			const speed = .5 + ndx * .05;
 			const rot = time * speed;
-			obj.rotation.x = rot;
+			// obj.rotation.x = rot;
 			obj.rotation.y = rot;
 
 		} );
