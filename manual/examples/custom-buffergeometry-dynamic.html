@@ -194,8 +194,10 @@ function main() {
 			const ringQuadId = quad % segmentsAround;
 			const ringU = ringQuadId / segmentsAround;
 			const angle = ringU * Math.PI * 2;
+			// 将 normals 数组中第 i 个法线向量读入 temp,此时 temp 的 x, y, z 已经变成了法线的值
 			temp.fromArray( normals, i );
 			temp.multiplyScalar( THREE.MathUtils.lerp( 1, 1.4, Math.sin( time + ringId + angle ) * .5 + .5 ) );
+			// 将 temp 里的值写入 positions 数组的第 i 个位置,此时 positions 数组在内存中的二进制数据被直接修改了
 			temp.toArray( positions, i );
 
 		}
