@@ -104,6 +104,8 @@ function main() {
 
 	function render() {
 
+		console.log('render   ',renderRequested)
+
 		renderRequested = undefined;
 
 		if ( resizeRendererToDisplaySize( renderer ) ) {
@@ -122,6 +124,8 @@ function main() {
 	render();
 
 	function requestRenderIfNotRequested() {
+
+		console.log('requestRenderIfNotRequested   ',renderRequested)
 
 		if ( ! renderRequested ) {
 

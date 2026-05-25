@@ -173,8 +173,7 @@ function main() {
 
 		} );
 
-		const mergedGeometry = BufferGeometryUtils.mergeGeometries(
-			geometries, false );
+		const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, false );
 		const material = new THREE.MeshBasicMaterial( { color: 'red' } );
 		const mesh = new THREE.Mesh( mergedGeometry, material );
 		scene.add( mesh );

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>调试 - GLSL</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@threejs">
+    <meta name="twitter:title" content="Three.js – 调试 - GLSL">
+    <meta property="og:image" content="https://threejs.org/files/share.png">
+    <link rel="shortcut icon" href="../../files/favicon_white.ico" media="(prefers-color-scheme: dark)">
+    <link rel="shortcut icon" href="../../files/favicon.ico" media="(prefers-color-scheme: light)">
+
+    <link rel="stylesheet" href="../resources/lesson.css">
+    <link rel="stylesheet" href="../resources/lang.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "../../build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+    <div class="container">
+        <div class="lesson-title">
+            <h1>调试 - GLSL</h1>
+        </div>
+        <div class="lesson">
+            <div class="lesson-main">
+                <p>到目前为止，本网站不教授 GLSL，就像它不教授 JavaScript 一样。这些都是非常宏大的主题。如果您想学习 GLSL，请考虑将 <a href="https://webglfundamentals.org">这些文章</a> 作为起点。</p>
+                <p>如果您已经了解 GLSL，那么以下是一些调试技巧。</p>
+                <p>当我编写一个新的 GLSL 着色器且没有任何东西显示时，我做的第一件事通常是修改片元着色器，让它返回一个纯色。例如，在着色器的最底部，我可能会加上：</p>
+                <pre class="prettyprint showlinemods notranslate lang-glsl" translate="no">void main() {
+
+  ...
+
+  gl_FragColor = vec4(1, 0, 0, 1);  // 红色
+}
+</pre>
+                <p>如果我能看到我试图绘制的物体，那么我就知道问题与我的片元着色器有关。原因可能是任何东西，比如错误的纹理、未初始化的 uniform、值不对的 uniform，但至少我有了一个查找方向。</p>
+                <p>为了测试其中的一些问题，我可能会尝试绘制一些输入值。例如，如果我在片元着色器中使用了法线，那么我可能会添加：</p>
+                <pre class="prettyprint showlinemods notranslate lang-glsl" translate="no">gl_FragColor = vec4(vNormal * 0.5 + 0.5, 1);
+</pre>
+                <p>法线的范围是 -1 到 +1，通过乘以 0.5 再加上 0.5，我们得到的值范围是 0.0 到 1.0，这使得它们可以用作颜色。</p>
+                <p>在一些您确定能正常工作的物体上尝试这个方法，您就会开始了解法线“通常”应该是什么样子。如果您的法线看起来不正常，那么您就有了查找问题的线索。如果您在片元着色器中操作法线，您可以使用同样的技术来绘制操作后的结果。</p>
+                <div class="threejs_center"><img src="../resources/images/standard-primitive-normals.jpg" style="width: 650px;"></div>
+
+                <p>类似地，如果我们使用纹理，就会有纹理坐标，我们可以用类似下面的代码来绘制它们：</p>
+                <pre class="prettyprint showlinemods notranslate lang-glsl" translate="no">gl_FragColor = vec4(fract(vUv), 0, 1);
+</pre>
+                <p>这里使用 <code class="notranslate" translate="no">fract</code> 是为了防止纹理坐标超出 0 到 1 的范围。如果 <code class="notranslate" translate="no">texture.repeat</code> 被设置为大于 1 的值，这种情况很常见。</p>
+                <div class="threejs_center"><img src="../resources/images/standard-primitive-uvs.jpg" style="width: 650px;"></div>
+
+                <p>您可以对片元着色器中的所有值做类似的事情。弄清楚它们的可能范围，添加一些代码来设置 <code class="notranslate" translate="no">gl_FragColor</code>，将该范围缩放到 0.0 到 1.0。</p>
+                <p>要检查纹理，请尝试使用您知道能正常工作的 <a href="/docs/#api/en/textures/CanvasTexture"><code class="notranslate" translate="no">CanvasTexture</code></a> 或 <a href="/docs/#api/en/textures/DataTexture"><code class="notranslate" translate="no">DataTexture</code></a>。</p>
+                <p>反过来，如果在将 <code class="notranslate" translate="no">gl_FragColor</code> 设置为红色后我仍然什么也看不到，那么我就有线索表明我的问题可能与顶点着色器相关。某些矩阵可能是错的，或者我的属性数据有问题，或者设置不正确。</p>
+                <p>我会首先查看矩阵。我可能会在调用 <code class="notranslate" translate="no">renderer.render(scene, camera)</code> 之后立即设置一个断点，然后在检查器中展开各种对象。相机的世界矩阵和投影矩阵至少没有充满 <code class="notranslate" translate="no">NaN</code> 吧？展开场景并查看其 <code class="notranslate" translate="no">children</code>，我会检查世界矩阵看起来是否合理（没有 <code class="notranslate" translate="no">NaN</code>），并且每个矩阵的最后 4 个值对于我的场景来说看起来是否合理。如果我期望我的场景尺寸是 50x50x50 个单位，而某个矩阵显示为 552352623.123，那么很明显这里有问题。</p>
+                <div class="threejs_center"><img src="../resources/images/inspect-matrices.gif"></div>
+
+                <p>就像我们对片元着色器所做的那样，我们也可以通过将值传递给片元着色器来从顶点着色器绘制它们。在两者中声明一个 varying 变量，并传递您不确定是否正确的那部分值。实际上，如果我的着色器使用了法线，我会修改片元着色器来显示它们，就像上面提到的那样，然后将 <code class="notranslate" translate="no">vNormal</code> 设置为我想要显示的值，但要进行缩放，使得值的范围在 0.0 到 1.0 之间。然后我观察结果，看它们是否符合我的预期。</p>
+                <p>另一个好方法是使用更简单的着色器。您能用 <a href="/docs/#api/en/materials/MeshBasicMaterial"><code class="notranslate" translate="no">MeshBasicMaterial</code></a> 绘制您的数据吗？如果能，那就尝试一下，确保它按预期显示出来。</p>
+                <p>如果不能，那么能让您可视化几何体的最简单顶点着色器是什么？通常就这么简单：</p>
+                <pre class="prettyprint showlinemods notranslate lang-glsl" translate="no">gl_Position = projection * modelView * vec4(position.xyz, 1);
+</pre>
+                <p>如果这能起作用，那就开始一次一点地添加您的更改。</p>
+                <p>您还可以做另一件事，那就是使用 Chrome 的 <a href="https://chrome.google.com/webstore/detail/shader-editor/ggeaidddejpbakgafapihjbgdlbbbpob?hl=en">Shader Editor 扩展程序</a>或其他浏览器的类似扩展。这是了解其他着色器如何工作的好方法。同时，您还可以在代码运行时实时进行上面提到的一些更改，这也很好用。</p>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="../resources/prettify.js"></script>
+    <script src="../resources/lesson.js"></script>
+
+</body>
+</html>
