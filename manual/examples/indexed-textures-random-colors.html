@@ -99,6 +99,7 @@ function main() {
 	const maxNumCountries = 512;
 	const paletteTextureWidth = maxNumCountries;
 	const paletteTextureHeight = 1;
+	// 调色板
 	const palette = new Uint8Array( paletteTextureWidth * 4 );
 	const paletteTexture = new THREE.DataTexture( palette, paletteTextureWidth, paletteTextureHeight );
 	paletteTexture.minFilter = THREE.NearestFilter;
@@ -119,6 +120,7 @@ function main() {
 		const loader = new THREE.TextureLoader();
 		const geometry = new THREE.SphereGeometry( 1, 64, 32 );
 
+		// 这是一张灰度图，里边的颜色代表调色板上的索引
 		const indexTexture = loader.load( 'resources/data/world/country-index-texture.png', render );
 		indexTexture.minFilter = THREE.NearestFilter;
 		indexTexture.magFilter = THREE.NearestFilter;
@@ -142,7 +144,17 @@ function main() {
           #include <color_fragment>
           {
             vec4 indexColor = texture2D(indexTexture, vMapUv);
+						
+						// 单 R 通道只能存储 256 个 多余256就要用 G 存储
+						// R 通道存储 低8位 (0-255)  G 通道存储 高8位(256的倍数)	
+						// indexColor.r * 255.0 : 还原出低位整数(例如 10)
+						// indexColor.g * 255.0 : 还原出高位倍数  * 256.0 : 相当于左移 8 位（进位）
             float index = indexColor.r * 255.0 + indexColor.g * 255.0 * 256.0;
+						
+						// +0.5 像素中心对齐
+						// 在纹理采样中，整数坐标 (如 0.0, 1.0) 通常对应像素的边缘。
+						// 如果你直接用 index / width,可能会采样到两个像素的中间，导致颜色“串味”。
+						// 加上 0.5 是为了把采样点强行移到像素的正中心，确保读到的颜色是 100% 准确的
             vec2 paletteUV = vec2((index + 0.5) / paletteTextureWidth, 0.5);
             vec4 paletteColor = texture2D(paletteTexture, paletteUV);
             // diffuseColor.rgb += paletteColor.rgb;   // white outlines
@@ -152,6 +164,7 @@ function main() {
 			},
 		];
 
+		//
 		const texture = loader.load( 'resources/data/world/country-outlines-4k.png', render );
 		const material = new THREE.MeshBasicMaterial( { map: texture } );
 		material.onBeforeCompile = function ( shader ) {
@@ -164,6 +177,8 @@ function main() {
 			shader.uniforms.paletteTexture = { value: paletteTexture };
 			shader.uniforms.indexTexture = { value: indexTexture };
 			shader.uniforms.paletteTextureWidth = { value: paletteTextureWidth };
+
+			console.log( shader.fragmentShader );
 
 		};
 
